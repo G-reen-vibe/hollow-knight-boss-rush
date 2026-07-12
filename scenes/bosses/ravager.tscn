@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss/boss.gd" id="1_boss"]
 [ext_resource type="Script" path="res://scripts/boss/ravager.gd" id="2_ravager"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/boss/ravager/slam_land.gd" id="9_slam"]
 [ext_resource type="Script" path="res://scripts/boss/ravager/telegraph_charge.gd" id="10_tcharge"]
 [ext_resource type="Script" path="res://scripts/boss/ravager/charge.gd" id="11_charge"]
+[ext_resource type="Script" path="res://scripts/boss/ravager/stun.gd" id="11b_stun"]
 [ext_resource type="Script" path="res://scripts/boss/states/boss_recover.gd" id="12_recover"]
 [ext_resource type="Script" path="res://scripts/boss/states/boss_hurt.gd" id="13_hurt"]
 [ext_resource type="Script" path="res://scripts/boss/states/boss_dead.gd" id="14_dead"]
@@ -83,12 +84,13 @@ collision_mask = 32
 script = ExtResource("5_hitbox")
 damage = 1
 knockback_force = 280.0
-hit_cooldown = 0.6
+hit_cooldown = 1.0
 hits_player = true
 hits_enemies = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ContactHitbox"]
 shape = SubResource("RectangleShape2D_contact")
+disabled = true
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("3_sm")
@@ -96,12 +98,12 @@ initial_state = NodePath("Idle")
 
 [node name="Idle" type="Node" parent="StateMachine"]
 script = ExtResource("6_idle")
-min_idle = 0.4
-max_idle = 0.9
+min_idle = 0.5
+max_idle = 1.0
 
 [node name="TelegraphLeap" type="Node" parent="StateMachine"]
 script = ExtResource("7_tleap")
-telegraph_duration = 0.45
+telegraph_duration = 0.85
 
 [node name="Leap" type="Node" parent="StateMachine"]
 script = ExtResource("8_leap")
@@ -111,14 +113,18 @@ script = ExtResource("9_slam")
 
 [node name="TelegraphCharge" type="Node" parent="StateMachine"]
 script = ExtResource("10_tcharge")
-telegraph_duration = 0.5
+telegraph_duration = 0.75
 
 [node name="Charge" type="Node" parent="StateMachine"]
 script = ExtResource("11_charge")
 
+[node name="Stun" type="Node" parent="StateMachine"]
+script = ExtResource("11b_stun")
+duration = 1.0
+
 [node name="Recover" type="Node" parent="StateMachine"]
 script = ExtResource("12_recover")
-duration = 0.6
+duration = 0.8
 
 [node name="Hurt" type="Node" parent="StateMachine"]
 script = ExtResource("13_hurt")

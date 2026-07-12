@@ -51,13 +51,16 @@ func _ready() -> void:
         hurtbox.is_enemy = true
         hurtbox.invincible_time = 0.05  # Bosses have very short invuln.
         hurtbox.hit_taken.connect(_on_hurt)
-        # Configure contact hitbox (damage-on-touch).
+        # Configure contact hitbox (damage-on-touch) — OFF by default.
+        # Only activated during specific attack states, NOT during idle/approach.
+        # This prevents the "boss stands on you and stuns you" problem.
         if contact_hitbox != null:
                 contact_hitbox.damage = contact_damage
                 contact_hitbox.knockback_force = contact_knockback
                 contact_hitbox.hits_player = true
                 contact_hitbox.hits_enemies = false
                 contact_hitbox.hit_cooldown = contact_hit_cooldown
+                activate_contact_hitbox(false)  # OFF by default.
         state_machine.target = self
         # Find player as target.
         await get_tree().process_frame
@@ -176,6 +179,57 @@ func activate_contact_hitbox(active: bool) -> void:
         for child in contact_hitbox.get_children():
                 if child is CollisionShape2D:
                         child.set_deferred("disabled", not active)
+
+
+# --- Telegraph indicator helpers (used by attack states) ---------------------
+
+## Spawn a ground marker at `world_pos` that pulses red. Returns the marker
+## node so the caller can free it when the attack fires.
+func spawn_ground_marker(world_pos: Vector2, radius: float = 36.0) -> Node2D:
+        var marker := Node2D.new()
+        marker.global_position = world_pos
+        get_parent().add_child(marker)
+        var segs := 24
+        var ring := Polygon2D.new()
+        ring.color = Color(1, 0.2, 0.2, 0.5)
+        var pts := PackedVector2Array()
+        for i in segs + 1:
+                var a := (float(i) / segs) * TAU
+                pts.append(Vector2(cos(a), sin(a)) * radius)
+        ring.polygon = pts
+        marker.add_child(ring)
+        var fill := Polygon2D.new()
+        fill.color = Color(1, 0.3, 0.3, 0.2)
+        var pts2 := PackedVector2Array()
+        for i in segs + 1:
+                var a := (float(i) / segs) * TAU
+                pts2.append(Vector2(cos(a), sin(a)) * radius)
+        fill.polygon = pts2
+        marker.add_child(fill)
+        # Pulse.
+        var tw := marker.create_tween().set_loops()
+        tw.tween_property(fill, "color:a", 0.4, 0.2)
+        tw.tween_property(fill, "color:a", 0.15, 0.2)
+        return marker
+
+
+## Spawn a line indicator from `from` to `to` showing a dive/charge path.
+func spawn_line_indicator(from: Vector2, to: Vector2, color: Color = Color(1, 0.3, 0.3, 0.4)) -> Node2D:
+        var marker := Node2D.new()
+        get_parent().add_child(marker)
+        var line := Polygon2D.new()
+        line.color = color
+        var dir := (to - from).normalized()
+        var perp := Vector2(-dir.y, dir.x) * 12.0
+        var len := from.distance_to(to)
+        line.polygon = [from + perp, from - perp, to - perp, to + perp]
+        line.global_position = Vector2.ZERO
+        marker.add_child(line)
+        # Pulse.
+        var tw := marker.create_tween().set_loops()
+        tw.tween_property(line, "color:a", 0.7, 0.15)
+        tw.tween_property(line, "color:a", 0.25, 0.15)
+        return marker
 
 
 # --- AI hooks (override in subclass) ---

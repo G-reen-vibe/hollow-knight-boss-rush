@@ -86,6 +86,7 @@ hits_enemies = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ContactHitbox"]
 shape = SubResource("RectangleShape2D_contact")
+disabled = true
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("2_sm")
