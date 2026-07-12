@@ -86,10 +86,14 @@ func _process(delta: float) -> void:
         if int(elapsed * 2) % 5 == 0 and abs((elapsed * 2) - int(elapsed * 2)) < 0.05:
                 var boss := _current_boss()
                 var boss_hp: int = -1
+                var boss_state: String = ""
+                var dist_x: float = 0.0
                 if boss != null:
                         boss_hp = boss.health
-                _log("t=%.1fs boss=%s idx=%d hp=%d/%d player_hp=%d soul=%d" % [
-                        elapsed, boss.boss_name if boss != null else "none", last_boss_index, boss_hp, boss.max_health if boss != null else 0, player.health, int(player.soul)
+                        boss_state = str(boss.state_machine.current_state.name) if boss.state_machine.current_state != null else "?"
+                        dist_x = abs(boss.global_position.x - player.global_position.x)
+                _log("t=%.1fs boss=%s idx=%d hp=%d/%d st=%s dx=%.0f player_hp=%d soul=%d" % [
+                        elapsed, boss.boss_name if boss != null else "none", last_boss_index, boss_hp, boss.max_health if boss != null else 0, boss_state, dist_x, player.health, int(player.soul)
                 ])
 
 
@@ -160,21 +164,21 @@ func _run_ai(delta: float) -> void:
                 _ai_dash_cd = 0.15  # Brief lock to prevent immediate re-approach.
                 return
 
-        # Movement: maintain ~150 unit horizontal distance from boss.
-        const SAFE_DIST: float = 150.0
-        if dist_x < SAFE_DIST - 20.0:
-                # Too close - back off.
+        # Movement: chase the boss to attack range, but back off if too close.
+        const ATTACK_DIST: float = 80.0
+        const SAFE_DIST: float = 130.0
+        if dist_x < 60.0 and not is_active_attack:
+                # Too close and boss is idle — back off slightly.
                 if dir_to_boss_x != 0.0:
                         _press_dir(-dir_to_boss_x, delta)
-                # If backed into a wall, jump.
                 if player.is_on_wall() and player.is_on_floor():
                         _press_action("jump", 0.05)
-        elif dist_x > SAFE_DIST + 30.0:
-                # Too far - approach.
+        elif dist_x > ATTACK_DIST:
+                # Too far — close in to attack range.
                 if dir_to_boss_x != 0.0:
                         _press_dir(dir_to_boss_x, delta)
         else:
-                # In safe range - hold position.
+                # In attack range — hold position.
                 _release("move_left")
                 _release("move_right")
 
@@ -202,18 +206,31 @@ func _current_boss() -> Boss:
 
 # --- Input simulation --------------------------------------------------------
 
-func _press_dir(dir: float, duration: float) -> void:
+var _held_actions: Dictionary[StringName, bool] = {}
+
+
+func _press_dir(dir: float, _duration: float) -> void:
+        # For movement, hold the key continuously until told otherwise.
         if dir < 0.0:
-                _press_action("move_left", duration)
+                _hold("move_left")
                 _release("move_right")
         elif dir > 0.0:
-                _press_action("move_right", duration)
+                _hold("move_right")
                 _release("move_left")
+        else:
+                _release("move_left")
+                _release("move_right")
+
+
+func _hold(action: StringName) -> void:
+        if not _held_actions.get(action, false):
+                Input.action_press(action)
+                _held_actions[action] = true
 
 
 func _press_action(action: StringName, duration: float) -> void:
+        # For discrete actions (attack, jump, etc.), press and schedule release.
         Input.action_press(action)
-        # Schedule release.
         var tw := get_tree().create_timer(duration)
         tw.timeout.connect(func():
                 Input.action_release(action)
@@ -222,11 +239,13 @@ func _press_action(action: StringName, duration: float) -> void:
 
 func _release(action: StringName) -> void:
         Input.action_release(action)
+        _held_actions[action] = false
 
 
 func _release_all() -> void:
-        for action in ["move_left", "move_right", "jump", "attack", "dash", "cast_spell", "heal"]:
+        for action in ["move_left", "move_right", "jump", "attack", "dash", "cast_spell", "heal", "ui_up", "ui_down"]:
                 Input.action_release(action)
+                _held_actions[action] = false
 
 
 # --- Signal handlers ---------------------------------------------------------

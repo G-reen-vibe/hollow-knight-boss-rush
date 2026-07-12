@@ -29,9 +29,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-        # Tick down cooldowns and prune finished ones.
+        # Tick down cooldowns and prune finished/freed ones.
         var to_remove: Array[Node] = []
         for target_node in _cooldowns:
+                if not is_instance_valid(target_node):
+                        to_remove.append(target_node)
+                        continue
                 _cooldowns[target_node] -= delta
                 if _cooldowns[target_node] <= 0.0:
                         to_remove.append(target_node)
