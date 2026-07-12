@@ -1,0 +1,174 @@
+[gd_scene load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/utils/state_machine.gd" id="2_sm"]
+[ext_resource type="Script" path="res://scripts/utils/state.gd" id="3_state"]
+[ext_resource type="Script" path="res://scripts/player/states/idle.gd" id="4_idle"]
+[ext_resource type="Script" path="res://scripts/player/states/jump.gd" id="5_jump"]
+[ext_resource type="Script" path="res://scripts/player/states/fall.gd" id="6_fall"]
+[ext_resource type="Script" path="res://scripts/player/states/dash.gd" id="7_dash"]
+[ext_resource type="Script" path="res://scripts/player/states/attack.gd" id="8_attack"]
+[ext_resource type="Script" path="res://scripts/player/states/cast_spell.gd" id="9_cast"]
+[ext_resource type="Script" path="res://scripts/player/states/heal.gd" id="10_heal"]
+[ext_resource type="Script" path="res://scripts/player/states/hurt.gd" id="11_hurt"]
+[ext_resource type="Script" path="res://scripts/player/states/wall_slide.gd" id="12_wslide"]
+[ext_resource type="Script" path="res://scripts/player/states/wall_jump.gd" id="13_wjump"]
+[ext_resource type="Script" path="res://scripts/player/states/dead.gd" id="14_dead"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox.gd" id="15_hurtbox"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox.gd" id="16_hitbox"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(20, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(22, 42)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_side_atk"]
+size = Vector2(48, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_up_atk"]
+size = Vector2(28, 36)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_down_atk"]
+size = Vector2(28, 36)
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="Sprite" type="Node2D" parent="."]
+
+[node name="Cloak" type="Polygon2D" parent="Sprite"]
+color = Color(0.05, 0.05, 0.12, 1)
+polygon = PackedVector2Array(-14, -28, 14, -28, 18, 18, -18, 18)
+
+[node name="Body" type="Polygon2D" parent="Sprite"]
+color = Color(0.12, 0.12, 0.22, 1)
+polygon = PackedVector2Array(-10, -20, 10, -20, 12, 16, -12, 16)
+
+[node name="Head" type="Polygon2D" parent="Sprite"]
+color = Color(0.86, 0.86, 0.86, 1)
+polygon = PackedVector2Array(-9, -32, 9, -32, 10, -18, -10, -18)
+
+[node name="Eyes" type="Polygon2D" parent="Sprite"]
+color = Color(0, 0, 0, 1)
+polygon = PackedVector2Array(-6, -28, -3, -28, -3, -23, -6, -23, 3, -28, 6, -28, 6, -23, 3, -23)
+
+[node name="HornLeft" type="Polygon2D" parent="Sprite"]
+color = Color(0.96, 0.96, 0.96, 1)
+polygon = PackedVector2Array(-9, -32, -3, -32, -10, -42)
+
+[node name="HornRight" type="Polygon2D" parent="Sprite"]
+color = Color(0.96, 0.96, 0.96, 1)
+polygon = PackedVector2Array(3, -32, 9, -32, 10, -42)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="WallRayLeft" type="RayCast2D" parent="."]
+target_position = Vector2(-14, 0)
+collision_mask = 1
+
+[node name="WallRayRight" type="RayCast2D" parent="."]
+target_position = Vector2(14, 0)
+collision_mask = 1
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 32
+collision_mask = 0
+script = ExtResource("15_hurtbox")
+is_player = true
+is_enemy = false
+invincible_time = 0.9
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="AttackHitboxPivot" type="Node2D" parent="."]
+
+[node name="AttackHitbox" type="Area2D" parent="AttackHitboxPivot"]
+collision_layer = 0
+collision_mask = 64
+script = ExtResource("16_hitbox")
+damage = 1
+knockback_force = 320.0
+hit_cooldown = 0.4
+hits_player = false
+hits_enemies = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackHitboxPivot/AttackHitbox"]
+shape = SubResource("RectangleShape2D_side_atk")
+disabled = true
+
+[node name="UpAttackHitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 64
+script = ExtResource("16_hitbox")
+damage = 1
+knockback_force = 280.0
+hit_cooldown = 0.4
+hits_player = false
+hits_enemies = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="UpAttackHitbox"]
+position = Vector2(0, -28)
+shape = SubResource("RectangleShape2D_up_atk")
+disabled = true
+
+[node name="DownAttackHitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 64
+script = ExtResource("16_hitbox")
+damage = 1
+knockback_force = 220.0
+hit_cooldown = 0.4
+hits_player = false
+hits_enemies = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DownAttackHitbox"]
+position = Vector2(0, 28)
+shape = SubResource("RectangleShape2D_down_atk")
+disabled = true
+
+[node name="SpellSpawn" type="Marker2D" parent="."]
+position = Vector2(20, -10)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("2_sm")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("4_idle")
+
+[node name="Jump" type="Node" parent="StateMachine"]
+script = ExtResource("5_jump")
+
+[node name="Fall" type="Node" parent="StateMachine"]
+script = ExtResource("6_fall")
+
+[node name="Dash" type="Node" parent="StateMachine"]
+script = ExtResource("7_dash")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("8_attack")
+
+[node name="CastSpell" type="Node" parent="StateMachine"]
+script = ExtResource("9_cast")
+
+[node name="Heal" type="Node" parent="StateMachine"]
+script = ExtResource("10_heal")
+
+[node name="Hurt" type="Node" parent="StateMachine"]
+script = ExtResource("11_hurt")
+
+[node name="WallSlide" type="Node" parent="StateMachine"]
+script = ExtResource("12_wslide")
+
+[node name="WallJump" type="Node" parent="StateMachine"]
+script = ExtResource("13_wjump")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("14_dead")

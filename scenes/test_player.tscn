@@ -1,0 +1,114 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/utils/smooth_camera.gd" id="2_cam"]
+[ext_resource type="Script" path="res://scripts/utils/test_arena.gd" id="3_arena"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(2400, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_l"]
+size = Vector2(40, 800)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_r"]
+size = Vector2(40, 800)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_plat"]
+size = Vector2(200, 24)
+
+[node name="TestArena" type="Node2D"]
+script = ExtResource("3_arena")
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(0, 200)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="FloorVisual" type="Polygon2D" parent="Floor"]
+color = Color(0.16, 0.16, 0.22, 1)
+polygon = PackedVector2Array(-1200, -40, 1200, -40, 1200, 200, -1200, 200)
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(-700, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+shape = SubResource("RectangleShape2D_wall_l")
+
+[node name="LeftWallVisual" type="Polygon2D" parent="LeftWall"]
+color = Color(0.1, 0.1, 0.16, 1)
+polygon = PackedVector2Array(-20, -400, 20, -400, 20, 400, -20, 400)
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(700, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+shape = SubResource("RectangleShape2D_wall_r")
+
+[node name="RightWallVisual" type="Polygon2D" parent="RightWall"]
+color = Color(0.1, 0.1, 0.16, 1)
+polygon = PackedVector2Array(-20, -400, 20, -400, 20, 400, -20, 400)
+
+[node name="Platform1" type="StaticBody2D" parent="."]
+position = Vector2(-300, 60)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1"]
+shape = SubResource("RectangleShape2D_plat")
+
+[node name="Polygon2D" type="Polygon2D" parent="Platform1"]
+color = Color(0.2, 0.2, 0.28, 1)
+polygon = PackedVector2Array(-100, -12, 100, -12, 100, 12, -100, 12)
+
+[node name="Platform2" type="StaticBody2D" parent="."]
+position = Vector2(300, 60)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2"]
+shape = SubResource("RectangleShape2D_plat")
+
+[node name="Polygon2D" type="Polygon2D" parent="Platform2"]
+color = Color(0.2, 0.2, 0.28, 1)
+polygon = PackedVector2Array(-100, -12, 100, -12, 100, 12, -100, 12)
+
+[node name="Platform3" type="StaticBody2D" parent="."]
+position = Vector2(0, -80)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform3"]
+shape = SubResource("RectangleShape2D_plat")
+
+[node name="Polygon2D" type="Polygon2D" parent="Platform3"]
+color = Color(0.2, 0.2, 0.28, 1)
+polygon = PackedVector2Array(-100, -12, 100, -12, 100, 12, -100, 12)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(0, 100)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("2_cam")
+follow_target = NodePath("../Player")
+smoothing = 6.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="HealthLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 320.0
+offset_bottom = 60.0
+text = "Health: 5/5"
+horizontal_alignment = 0
+
+[node name="SoulLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 50.0
+offset_right = 320.0
+offset_bottom = 90.0
+text = "Soul: 0/99"
+horizontal_alignment = 0
+
+[node name="StateLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 320.0
+offset_bottom = 120.0
+text = "State: Idle"
+horizontal_alignment = 0
