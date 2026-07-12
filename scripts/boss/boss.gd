@@ -234,6 +234,6 @@ func spawn_line_indicator(from: Vector2, to: Vector2, color: Color = Color(1, 0.
 
 # --- AI hooks (override in subclass) ---
 
-func pick_next_attack() -> StringName:
+func pick_next_action() -> StringName:
         # Default: subclass implements this.
-        return &"Idle"
+        return idle_state_name
