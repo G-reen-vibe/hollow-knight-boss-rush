@@ -7,11 +7,16 @@ extends State
 ## the boss is stunned (vulnerable window).
 
 var _travelled: float = 0.0
+var _charge_dir: int = 1  # Locked at enter; NOT read from boss.facing.
 
 
 func enter(_msg: Dictionary = {}, _previous: State = null) -> void:
 	_travelled = 0.0
 	var b := target as Ravager
+	# Lock the charge direction NOW (from the telegraph). Do NOT read b.facing
+	# during the charge — the boss base updates facing every frame to track
+	# the player, which would flip the charge direction mid-dash.
+	_charge_dir = b.facing
 	# Activate contact hitbox DURING the charge (body is dangerous while moving).
 	b.activate_contact_hitbox(true)
 	# Stretch forward.
@@ -22,8 +27,7 @@ func enter(_msg: Dictionary = {}, _previous: State = null) -> void:
 func physics_process(delta: float) -> void:
 	var b := target as Ravager
 	var speed: float = b.charge_speed * (1.2 if b.current_phase >= 2 else 1.0)
-	var dir: int = b.facing
-	b.velocity.x = dir * speed
+	b.velocity.x = _charge_dir * speed
 	b.velocity.y = 0.0
 	_travelled += abs(b.velocity.x) * delta
 	# Hit wall? -> stunned (vulnerable).
@@ -56,6 +60,9 @@ func _end_charge(b: Ravager, hit_wall: bool) -> void:
 			tw2.tween_property(cam, "offset", orig, 0.05)
 		# Go to a longer stun recovery.
 		b.state_machine.transition_to(&"Stun")
+	else:
+		# Didn't hit a wall (ran out of distance) — still need to recover.
+		b.state_machine.transition_to(&"Recover")
 
 
 func exit() -> void:
