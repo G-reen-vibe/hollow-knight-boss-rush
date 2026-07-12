@@ -78,6 +78,7 @@ signal spawned  # emitted after respawn
 
 func _ready() -> void:
         Globals.assign_player_layers(self)
+        add_to_group("player")
         health = max_health
         soul = 0.0
         health_changed.emit(health, max_health)
@@ -217,7 +218,7 @@ func apply_knockback(kb: Vector2) -> void:
         velocity = kb
 
 
-func _on_hurt(damage: int, _source: Hitbox) -> void:
+func _on_hurt(damage: int, _source: Variant) -> void:
         if invincible or dead:
                 return
         health = max(0, health - damage)

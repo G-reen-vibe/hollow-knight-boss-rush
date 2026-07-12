@@ -44,11 +44,8 @@ func _on_area_entered(other: Area2D) -> void:
                 if hb in _hit_targets:
                         return
                 _hit_targets.append(hb)
-                # Apply damage via a transient Hitbox-shaped effect (we directly invoke take_hit equivalent).
-                # Build a transient Hitbox to leverage existing flow.
-                var hit := _make_transient_hitbox()
-                hb.take_hit(hit)
-                hit.queue_free()
+                # Apply damage directly (no transient Hitbox node needed).
+                hb.apply_damage(damage, knockback_force, global_position)
                 # Increment pierce count.
                 if _hit_targets.size() >= _max_pierce:
                         queue_free()
@@ -57,15 +54,6 @@ func _on_area_entered(other: Area2D) -> void:
 func _on_body_entered(_body: Node) -> void:
         # Hit walls? For simplicity, ignore (pass through geometry).
         pass
-
-
-func _make_transient_hitbox() -> Hitbox:
-        var hit := Hitbox.new()
-        hit.damage = damage
-        hit.knockback_force = knockback_force
-        hit.hits_player = not source_is_player
-        hit.hits_enemies = source_is_player
-        return hit
 
 
 func _spawn_visual() -> void:
