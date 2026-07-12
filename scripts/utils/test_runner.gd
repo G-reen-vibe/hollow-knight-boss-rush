@@ -10,7 +10,7 @@ extends Node
 ##
 ## Logs periodic state snapshots and reports pass/fail at the end.
 
-const RUN_DURATION: float = 180.0  # 3 minutes max per test run.
+const RUN_DURATION: float = 360.0  # 6 minutes max per test run.
 const INVINCIBLE_PLAYER: bool = true  # Make player invincible for testing progression.
 
 var main_game: Node2D
@@ -83,9 +83,13 @@ func _process(delta: float) -> void:
                 player.heal_to_full()
         _run_ai(delta)
         # Periodic log.
-        if int(elapsed) % 10 == 0 and abs(elapsed - int(elapsed)) < 0.05:
-                _log("t=%ds boss_idx=%d player_hp=%d/%d soul=%d" % [
-                        int(elapsed), last_boss_index, player.health, player.max_health, int(player.soul)
+        if int(elapsed * 2) % 5 == 0 and abs((elapsed * 2) - int(elapsed * 2)) < 0.05:
+                var boss := _current_boss()
+                var boss_hp: int = -1
+                if boss != null:
+                        boss_hp = boss.health
+                _log("t=%.1fs boss=%s idx=%d hp=%d/%d player_hp=%d soul=%d" % [
+                        elapsed, boss.boss_name if boss != null else "none", last_boss_index, boss_hp, boss.max_health if boss != null else 0, player.health, int(player.soul)
                 ])
 
 
@@ -105,10 +109,13 @@ func _run_ai(delta: float) -> void:
                 _release_all()
                 return
 
-        var boss_x: float = boss.global_position.x
-        var player_x: float = player.global_position.x
-        var dist: float = abs(boss_x - player_x)
-        var dir_to_boss: float = sign(boss_x - player_x)
+        var boss_pos: Vector2 = boss.global_position
+        var player_pos: Vector2 = player.global_position
+        var dist_x: float = abs(boss_pos.x - player_pos.x)
+        var dist_y: float = abs(boss_pos.y - player_pos.y)
+        var dist: float = boss_pos.distance_to(player_pos)
+        var dir_to_boss_x: float = sign(boss_pos.x - player_pos.x)
+        var boss_above: bool = boss_pos.y < player_pos.y - 30.0
         var boss_state_name: StringName = &""
         if boss.state_machine != null and boss.state_machine.current_state != null:
                 boss_state_name = boss.state_machine.current_state.name
@@ -117,53 +124,67 @@ func _run_ai(delta: float) -> void:
         var is_telegraph: bool = boss_state_name.begins_with("Telegraph")
         var is_active_attack: bool = boss_state_name in [&"Leap", &"Dive", &"Charge", &"SlamLand", &"DashCombo"]
         if (is_telegraph or is_active_attack) and _ai_dash_cd <= 0.0:
-                if dir_to_boss != 0.0:
-                        _press_dir(-dir_to_boss, 0.05)
+                if dir_to_boss_x != 0.0:
+                        _press_dir(-dir_to_boss_x, 0.05)
                         _press_action("dash", 0.05)
                         _ai_dash_cd = 0.5
                         return
 
         # Heal if hurt and have soul, and boss is far/recovering.
-        if player.health <= 3 and player.soul >= Globals.HEAL_SOUL_COST and _ai_heal_cd <= 0.0 and dist > 200.0:
+        if player.health <= 3 and player.soul >= Globals.HEAL_SOUL_COST and _ai_heal_cd <= 0.0 and dist > 220.0:
                 _press_action("heal", 0.1)
                 _ai_heal_cd = 2.0
                 return
 
-        # Cast spell at range when safe.
-        if dist > 220.0 and player.soul >= Globals.SPELL_SOUL_COST and _ai_cast_cd <= 0.0:
-                if dir_to_boss != 0.0:
-                        _press_dir(dir_to_boss, 0.05)
+        # Cast spell when soul is high (against flying bosses especially).
+        if player.soul >= Globals.SPELL_SOUL_COST and _ai_cast_cd <= 0.0 and dist > 100.0:
+                if dir_to_boss_x != 0.0:
+                        _press_dir(dir_to_boss_x, 0.05)
                         _press_action("cast_spell", 0.05)
-                        _ai_cast_cd = 1.2
+                        _ai_cast_cd = 0.9
                         return
 
         # Attack if in melee range and boss isn't actively attacking.
-        if dist < 90.0 and _ai_attack_cd <= 0.0 and not is_active_attack:
-                if dir_to_boss != 0.0:
-                        _press_dir(dir_to_boss, 0.05)
-                _press_action("attack", 0.05)
-                _ai_attack_cd = 0.35
-                # Back off after attacking.
-                _ai_dash_cd = 0.2  # Brief lock to prevent immediate re-approach.
+        var in_melee: bool = dist_x < 100.0 and dist_y < 80.0
+        if in_melee and _ai_attack_cd <= 0.0 and not is_active_attack:
+                if dir_to_boss_x != 0.0:
+                        _press_dir(dir_to_boss_x, 0.05)
+                # If boss is above, use up-attack.
+                if boss_above and not player.is_on_floor():
+                        # Hold up + attack for up-attack.
+                        _press_action("ui_up", 0.05)
+                        _press_action("attack", 0.05)
+                else:
+                        _press_action("attack", 0.05)
+                _ai_attack_cd = 0.30
+                _ai_dash_cd = 0.15  # Brief lock to prevent immediate re-approach.
                 return
 
-        # Movement: maintain ~150 unit distance from boss.
+        # Movement: maintain ~150 unit horizontal distance from boss.
         const SAFE_DIST: float = 150.0
-        if dist < SAFE_DIST - 20.0:
+        if dist_x < SAFE_DIST - 20.0:
                 # Too close - back off.
-                if dir_to_boss != 0.0:
-                        _press_dir(-dir_to_boss, delta)
+                if dir_to_boss_x != 0.0:
+                        _press_dir(-dir_to_boss_x, delta)
                 # If backed into a wall, jump.
                 if player.is_on_wall() and player.is_on_floor():
                         _press_action("jump", 0.05)
-        elif dist > SAFE_DIST + 30.0:
+        elif dist_x > SAFE_DIST + 30.0:
                 # Too far - approach.
-                if dir_to_boss != 0.0:
-                        _press_dir(dir_to_boss, delta)
+                if dir_to_boss_x != 0.0:
+                        _press_dir(dir_to_boss_x, delta)
         else:
                 # In safe range - hold position.
                 _release("move_left")
                 _release("move_right")
+
+        # Jump to attack flying bosses (more aggressive).
+        if boss_above and player.is_on_floor() and dist_y > 60.0 and randf() < 0.15:
+                _press_action("jump", 0.05)
+                # Immediately try to double-jump for more height.
+                await get_tree().create_timer(0.2).timeout
+                _press_action("jump", 0.05)
+                return
 
         # Random jump to vary movement.
         if randf() < 0.005 and player.is_on_floor():

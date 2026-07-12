@@ -13,7 +13,7 @@ const ATTACK_DIVE: StringName = &"TelegraphDive"
 const ATTACK_SHOOT: StringName = &"TelegraphShoot"
 
 @export var hover_speed: float = 90.0
-@export var hover_height: float = -180.0  # Offset above player.
+@export var hover_height: float = -130.0  # Offset above player.
 @export var hover_amplitude: float = 40.0
 @export var projectile_speed: float = 320.0
 @export var projectile_damage: int = 1
