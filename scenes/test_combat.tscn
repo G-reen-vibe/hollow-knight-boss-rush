@@ -1,0 +1,90 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/ravager.tscn" id="2_ravager"]
+[ext_resource type="Script" path="res://scripts/utils/smooth_camera.gd" id="3_cam"]
+[ext_resource type="Script" path="res://scripts/utils/test_combat.gd" id="4_combat"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(2400, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(40, 800)
+
+[node name="TestCombat" type="Node2D"]
+script = ExtResource("4_combat")
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(0, 200)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="FloorVisual" type="Polygon2D" parent="Floor"]
+color = Color(0.16, 0.16, 0.22, 1)
+polygon = PackedVector2Array(-1200, -40, 1200, -40, 1200, 200, -1200, 200)
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(-700, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Visual" type="Polygon2D" parent="LeftWall"]
+color = Color(0.1, 0.1, 0.16, 1)
+polygon = PackedVector2Array(-20, -400, 20, -400, 20, 400, -20, 400)
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(700, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Visual" type="Polygon2D" parent="RightWall"]
+color = Color(0.1, 0.1, 0.16, 1)
+polygon = PackedVector2Array(-20, -400, 20, -400, 20, 400, -20, 400)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(-300, 100)
+
+[node name="Boss" parent="." instance=ExtResource("2_ravager")]
+position = Vector2(300, 100)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("3_cam")
+follow_target = NodePath("../Player")
+smoothing = 6.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="PlayerHP" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 400.0
+offset_bottom = 60.0
+text = "HP: 5/5"
+horizontal_alignment = 0
+
+[node name="Soul" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 50.0
+offset_right = 400.0
+offset_bottom = 90.0
+text = "Soul: 0/99"
+horizontal_alignment = 0
+
+[node name="BossHP" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 90.0
+offset_right = 400.0
+offset_bottom = 130.0
+text = "Boss: 24/24"
+horizontal_alignment = 0
+
+[node name="State" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 400.0
+offset_bottom = 170.0
+text = "State: Idle"
+horizontal_alignment = 0
