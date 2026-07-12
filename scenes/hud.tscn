@@ -1,0 +1,94 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+[ext_resource type="Theme" path="res://resources/hud_theme.tres" id="2_theme"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+
+[node name="MasksRow" type="HBoxContainer" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 244.0
+offset_bottom = 60.0
+theme_override_constants/separation = 6
+
+[node name="SoulBar" type="ProgressBar" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 24.0
+offset_top = 64.0
+offset_right = 244.0
+offset_bottom = 84.0
+max_value = 99.0
+value = 0.0
+show_percentage = false
+
+[node name="BossName" type="Label" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = 30.0
+offset_right = 300.0
+offset_bottom = 70.0
+horizontal_alignment = 1
+text = "Boss"
+
+[node name="BossIndex" type="Label" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = 8.0
+offset_right = 300.0
+offset_bottom = 30.0
+horizontal_alignment = 1
+text = "Boss 1 of 3"
+
+[node name="BossBar" type="ProgressBar" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -360.0
+offset_top = 70.0
+offset_right = 360.0
+offset_bottom = 90.0
+max_value = 24.0
+value = 24.0
+show_percentage = false
+
+[node name="Message" type="Label" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -80.0
+offset_right = 400.0
+offset_bottom = 80.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = ""
