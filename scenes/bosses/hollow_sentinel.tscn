@@ -1,0 +1,136 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel.gd" id="1_hs"]
+[ext_resource type="Script" path="res://scripts/utils/state_machine.gd" id="2_sm"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox.gd" id="3_hurtbox"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox.gd" id="4_hitbox"]
+[ext_resource type="Script" path="res://scripts/boss/states/boss_idle.gd" id="5_idle"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/approach.gd" id="6_approach"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/telegraph_leap.gd" id="7_tleap"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/leap.gd" id="8_leap"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/slam_land.gd" id="9_slam"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/telegraph_slash.gd" id="10_tslash"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/telegraph_shoot.gd" id="11_tshoot"]
+[ext_resource type="Script" path="res://scripts/boss/hollow_sentinel/telegraph_dash_combo.gd" id="12_tdash"]
+[ext_resource type="Script" path="res://scripts/boss/states/boss_recover.gd" id="13_recover"]
+[ext_resource type="Script" path="res://scripts/boss/states/boss_hurt.gd" id="14_hurt"]
+[ext_resource type="Script" path="res://scripts/boss/states/boss_dead.gd" id="15_dead"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(40, 56)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(44, 60)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_contact"]
+size = Vector2(40, 56)
+
+[node name="HollowSentinel" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1_hs")
+
+[node name="Sprite" type="Node2D" parent="."]
+
+[node name="Cloak" type="Polygon2D" parent="Sprite"]
+color = Color(0.10, 0.10, 0.18, 1)
+polygon = PackedVector2Array(-22, -32, 22, -32, 26, 24, -26, 24)
+
+[node name="Body" type="Polygon2D" parent="Sprite"]
+color = Color(0.20, 0.20, 0.32, 1)
+polygon = PackedVector2Array(-14, -24, 14, -24, 18, 18, -18, 18)
+
+[node name="Head" type="Polygon2D" parent="Sprite"]
+color = Color(0.85, 0.85, 0.92, 1)
+polygon = PackedVector2Array(-11, -36, 11, -36, 13, -22, -13, -22)
+
+[node name="Face" type="Polygon2D" parent="Sprite"]
+color = Color(0, 0, 0, 1)
+polygon = PackedVector2Array(-7, -32, -3, -32, -3, -27, -7, -27, 3, -32, 7, -32, 7, -27, 3, -27)
+
+[node name="HornLeft" type="Polygon2D" parent="Sprite"]
+color = Color(0.95, 0.95, 1.0, 1)
+polygon = PackedVector2Array(-11, -36, -5, -36, -14, -50)
+
+[node name="HornRight" type="Polygon2D" parent="Sprite"]
+color = Color(0.95, 0.95, 1.0, 1)
+polygon = PackedVector2Array(5, -36, 11, -36, 14, -50)
+
+[node name="Nail" type="Polygon2D" parent="Sprite"]
+color = Color(0.85, 0.85, 0.92, 1)
+polygon = PackedVector2Array(18, -8, 38, -10, 38, 10, 18, 8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 64
+collision_mask = 0
+script = ExtResource("3_hurtbox")
+is_player = false
+is_enemy = true
+invincible_time = 0.05
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="ContactHitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 32
+script = ExtResource("4_hitbox")
+damage = 1
+knockback_force = 280.0
+hit_cooldown = 0.6
+hits_player = true
+hits_enemies = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactHitbox"]
+shape = SubResource("RectangleShape2D_contact")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("2_sm")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("5_idle")
+min_idle = 0.3
+max_idle = 0.7
+
+[node name="Approach" type="Node" parent="StateMachine"]
+script = ExtResource("6_approach")
+approach_time = 0.6
+
+[node name="TelegraphLeap" type="Node" parent="StateMachine"]
+script = ExtResource("7_tleap")
+telegraph_duration = 0.4
+
+[node name="Leap" type="Node" parent="StateMachine"]
+script = ExtResource("8_leap")
+
+[node name="SlamLand" type="Node" parent="StateMachine"]
+script = ExtResource("9_slam")
+
+[node name="TelegraphSlash" type="Node" parent="StateMachine"]
+script = ExtResource("10_tslash")
+telegraph_duration = 0.35
+active_duration = 0.18
+
+[node name="TelegraphShoot" type="Node" parent="StateMachine"]
+script = ExtResource("11_tshoot")
+telegraph_duration = 0.5
+
+[node name="TelegraphDashCombo" type="Node" parent="StateMachine"]
+script = ExtResource("12_tdash")
+telegraph_duration = 0.5
+dash_speed = 620.0
+pause_between = 0.18
+
+[node name="Recover" type="Node" parent="StateMachine"]
+script = ExtResource("13_recover")
+duration = 0.5
+
+[node name="Hurt" type="Node" parent="StateMachine"]
+script = ExtResource("14_hurt")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("15_dead")
