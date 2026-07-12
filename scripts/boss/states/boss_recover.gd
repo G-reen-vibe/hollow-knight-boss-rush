@@ -1,7 +1,7 @@
 extends State
 ## Brief recovery state after an attack. Then transitions back to Idle.
 
-@export var duration: float = 0.6
+@export var duration: float = 0.85
 
 var _timer: float = 0.0
 

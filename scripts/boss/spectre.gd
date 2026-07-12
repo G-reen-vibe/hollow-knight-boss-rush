@@ -24,7 +24,7 @@ const ATTACK_SHOOT: StringName = &"TelegraphShoot"
 
 func _ready() -> void:
         boss_name = "Spectre"
-        max_health = 20
+        max_health = 14
         idle_state_name = &"Hover"
         phase_thresholds = [0.5]
         total_phases = 2

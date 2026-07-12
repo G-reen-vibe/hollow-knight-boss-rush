@@ -8,28 +8,28 @@ extends CharacterBody2D
 
 # --- Physics constants (tuned for Hollow Knight-like feel) -------------------
 
-const GRAVITY: float = 1800.0
-const MAX_FALL_SPEED: float = 720.0
-const RUN_SPEED: float = 280.0
-const RUN_ACCEL: float = 2400.0
-const RUN_FRICTION: float = 2800.0
-const AIR_ACCEL: float = 1700.0
-const AIR_FRICTION: float = 900.0
-const JUMP_VELOCITY: float = -560.0
-const DOUBLE_JUMP_VELOCITY: float = -500.0
-const COYOTE_TIME: float = 0.10
-const JUMP_BUFFER: float = 0.10
-const DASH_SPEED: float = 540.0
-const DASH_DURATION: float = 0.18
-const DASH_COOLDOWN: float = 0.45
-const WALL_SLIDE_SPEED: float = 110.0
-const WALL_JUMP_VEL: Vector2 = Vector2(420.0, -520.0)
-const WALL_JUMP_LOCK: float = 0.18  # Air control locked after wall jump.
-const ATTACK_DURATION: float = 0.26
-const ATTACK_RECOVER: float = 0.08
-const SPELL_DURATION: float = 0.45
-const HEAL_DURATION: float = 0.89
-const INVINCIBLE_TIME: float = 0.9
+const GRAVITY: float = 2000.0
+const MAX_FALL_SPEED: float = 780.0
+const RUN_SPEED: float = 340.0
+const RUN_ACCEL: float = 3200.0
+const RUN_FRICTION: float = 3400.0
+const AIR_ACCEL: float = 2400.0
+const AIR_FRICTION: float = 1100.0
+const JUMP_VELOCITY: float = -640.0
+const DOUBLE_JUMP_VELOCITY: float = -580.0
+const COYOTE_TIME: float = 0.12
+const JUMP_BUFFER: float = 0.12
+const DASH_SPEED: float = 720.0
+const DASH_DURATION: float = 0.22
+const DASH_COOLDOWN: float = 0.30
+const WALL_SLIDE_SPEED: float = 100.0
+const WALL_JUMP_VEL: Vector2 = Vector2(440.0, -580.0)
+const WALL_JUMP_LOCK: float = 0.16  # Air control locked after wall jump.
+const ATTACK_DURATION: float = 0.22
+const ATTACK_RECOVER: float = 0.06
+const SPELL_DURATION: float = 0.40
+const HEAL_DURATION: float = 0.80
+const INVINCIBLE_TIME: float = 1.0
 
 # --- Ability flags (set by upgrades / charms / meta) -------------------------
 
@@ -72,6 +72,9 @@ signal spawned  # emitted after respawn
 @onready var attack_pivot: Node2D = $AttackHitboxPivot
 @onready var anim: AnimationPlayer = $AnimationPlayer
 @onready var spell_spawn: Marker2D = $SpellSpawn
+@onready var slash_visual: Node2D = $SlashVisual
+@onready var up_slash_visual: Node2D = $UpSlashVisual
+@onready var down_slash_visual: Node2D = $DownSlashVisual
 
 
 # --- Lifecycle ---------------------------------------------------------------
@@ -293,16 +296,36 @@ func activate_attack(kind: StringName) -> void:
                 &"side":
                         _set_hitbox_active(attack_hitbox, true)
                         attack_pivot.scale.x = facing
+                        _show_slash(slash_visual, facing)
                 &"up":
                         _set_hitbox_active(up_attack_hitbox, true)
+                        _show_slash(up_slash_visual, 1)
                 &"down":
                         _set_hitbox_active(down_attack_hitbox, true)
+                        _show_slash(down_slash_visual, 1)
+
+
+func _show_slash(visual: Node2D, dir: int) -> void:
+        visual.visible = true
+        visual.scale = Vector2(dir, 1)
+        visual.modulate = Color(1, 1, 1, 1)
+        # Animate the slash: scale up briefly then fade.
+        var tw := create_tween()
+        tw.tween_property(visual, "scale", Vector2(dir * 1.25, 1.25), 0.06)
+        tw.parallel().tween_property(visual, "modulate:a", 0.0, 0.16)
+        tw.tween_callback(func(): visual.visible = false)
 
 
 func deactivate_attacks() -> void:
         _set_hitbox_active(attack_hitbox, false)
         _set_hitbox_active(up_attack_hitbox, false)
         _set_hitbox_active(down_attack_hitbox, false)
+        if slash_visual != null:
+                slash_visual.visible = false
+        if up_slash_visual != null:
+                up_slash_visual.visible = false
+        if down_slash_visual != null:
+                down_slash_visual.visible = false
 
 
 # --- Spell / projectile spawning --------------------------------------------

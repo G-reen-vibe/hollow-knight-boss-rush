@@ -20,6 +20,7 @@ signal phase_changed(phase: int)
 @export var can_flinch: bool = false  # Hollow Knight bosses mostly don't flinch.
 @export var contact_damage: int = 1
 @export var contact_knockback: float = 280.0
+@export var contact_hit_cooldown: float = 1.0  # Long cooldown so touching doesn't melt HP.
 
 var health: int = 30
 var facing: int = 1  # 1 = right, -1 = left
@@ -56,6 +57,7 @@ func _ready() -> void:
                 contact_hitbox.knockback_force = contact_knockback
                 contact_hitbox.hits_player = true
                 contact_hitbox.hits_enemies = false
+                contact_hitbox.hit_cooldown = contact_hit_cooldown
         state_machine.target = self
         # Find player as target.
         await get_tree().process_frame

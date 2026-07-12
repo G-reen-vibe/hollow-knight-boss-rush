@@ -1,8 +1,8 @@
 extends State
 ## Telegraph a slash: rear back, then activate a wide melee hitbox in front.
 
-@export var telegraph_duration: float = 0.35
-@export var active_duration: float = 0.18
+@export var telegraph_duration: float = 0.50
+@export var active_duration: float = 0.20
 
 
 var _timer: float = 0.0

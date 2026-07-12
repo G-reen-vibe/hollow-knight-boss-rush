@@ -25,7 +25,7 @@ const CHARGE_RANGE_MIN: float = 280.0
 
 func _ready() -> void:
         boss_name = "Ravager"
-        max_health = 24
+        max_health = 16
         phase_thresholds = [0.5]  # Phase 2 at 50% HP.
         total_phases = 2
         super._ready()

@@ -18,7 +18,7 @@ signal boss_index_changed(index: int, total: int, boss_name: String)
 
 # --- Gameplay constants ------------------------------------------------------
 
-const PLAYER_MAX_HEALTH: int = 5
+const PLAYER_MAX_HEALTH: int = 6
 const PLAYER_MAX_SOUL: float = 99.0
 const SOUL_PER_HIT: float = 11.0
 const HEAL_SOUL_COST: float = 33.0
@@ -50,26 +50,26 @@ var boss_roster: Array[StringName] = []
 # --- Helpers -----------------------------------------------------------------
 
 func reset_run() -> void:
-	current_boss_index = 0
-	current_boss_name = ""
+        current_boss_index = 0
+        current_boss_name = ""
 
 func assign_player_layers(body: Node) -> void:
-	if body is CollisionObject2D:
-		body.collision_layer = LAYER_PLAYER
-		body.collision_mask = LAYER_WORLD
+        if body is CollisionObject2D:
+                body.collision_layer = LAYER_PLAYER
+                body.collision_mask = LAYER_WORLD
 
 ## Spawn a brief floating damage number at world position.
 func spawn_damage_number(world_pos: Vector2, amount: int, color: Color = Color.WHITE) -> void:
-	var label := Label.new()
-	label.text = str(amount)
-	label.position = world_pos + Vector2(randf_range(-8.0, 8.0), -16.0)
-	label.modulate = color
-	label.z_index = 100
-	label.add_theme_font_size_override(&"font_size", 20)
-	# Auto-attach to the scene tree root so it survives parent scene swaps.
-	var tree := Engine.get_main_loop() as SceneTree
-	tree.current_scene.add_child(label)
-	var tween := label.create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 24.0, 0.4)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.4)
-	tween.tween_callback(label.queue_free)
+        var label := Label.new()
+        label.text = str(amount)
+        label.position = world_pos + Vector2(randf_range(-8.0, 8.0), -16.0)
+        label.modulate = color
+        label.z_index = 100
+        label.add_theme_font_size_override(&"font_size", 20)
+        # Auto-attach to the scene tree root so it survives parent scene swaps.
+        var tree := Engine.get_main_loop() as SceneTree
+        tree.current_scene.add_child(label)
+        var tween := label.create_tween()
+        tween.tween_property(label, "position:y", label.position.y - 24.0, 0.4)
+        tween.parallel().tween_property(label, "modulate:a", 0.0, 0.4)
+        tween.tween_callback(label.queue_free)

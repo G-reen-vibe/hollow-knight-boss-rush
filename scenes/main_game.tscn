@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/utils/smooth_camera.gd" id="3_cam"]
 [ext_resource type="Script" path="res://scripts/boss_rush_manager.gd" id="4_manager"]
 [ext_resource type="Script" path="res://scripts/main_game.gd" id="5_game"]
+[ext_resource type="Script" path="res://scripts/utils/arena_background.gd" id="6_bg"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2400, 80)
@@ -12,8 +13,27 @@ size = Vector2(2400, 80)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 800)
 
+[sub_resource type="Gradient" id="Gradient_bg"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.03, 0.03, 0.08, 1, 0.06, 0.05, 0.12, 1, 0.10, 0.08, 0.18, 1)
+
 [node name="MainGame" type="Node2D"]
 script = ExtResource("5_game")
+
+[node name="Background" type="Node2D" parent="."]
+script = ExtResource("6_bg")
+
+[node name="SkyGradient" type="Polygon2D" parent="Background"]
+color = Color(0.06, 0.05, 0.12, 1)
+polygon = PackedVector2Array(-1600, -800, 1600, -800, 1600, 400, -1600, 400)
+
+[node name="FarSilhouette" type="Polygon2D" parent="Background"]
+color = Color(0.04, 0.04, 0.09, 1)
+polygon = PackedVector2Array(-1600, 100, -1200, -50, -900, 30, -600, -80, -300, -20, 0, -100, 300, -30, 600, -90, 900, -10, 1200, -70, 1600, 20, 1600, 400, -1600, 400)
+
+[node name="MidSilhouette" type="Polygon2D" parent="Background"]
+color = Color(0.08, 0.07, 0.14, 1)
+polygon = PackedVector2Array(-1600, 150, -1300, 40, -1100, 90, -800, 20, -500, 70, -200, 30, 100, 80, 400, 20, 700, 70, 1000, 30, 1300, 80, 1600, 40, 1600, 400, -1600, 400)
 
 [node name="Floor" type="StaticBody2D" parent="."]
 position = Vector2(0, 200)
@@ -22,12 +42,16 @@ position = Vector2(0, 200)
 shape = SubResource("RectangleShape2D_floor")
 
 [node name="FloorVisual" type="Polygon2D" parent="Floor"]
-color = Color(0.12, 0.12, 0.18, 1)
+color = Color(0.10, 0.09, 0.16, 1)
 polygon = PackedVector2Array(-1200, -40, 1200, -40, 1200, 200, -1200, 200)
 
-[node name="FloorLine" type="Polygon2D" parent="Floor"]
-color = Color(0.3, 0.3, 0.38, 1)
-polygon = PackedVector2Array(-1200, -40, 1200, -40, 1200, -36, -1200, -36)
+[node name="FloorHighlight" type="Polygon2D" parent="Floor"]
+color = Color(0.20, 0.18, 0.28, 1)
+polygon = PackedVector2Array(-1200, -40, 1200, -40, 1200, -34, -1200, -34)
+
+[node name="FloorCracks" type="Polygon2D" parent="Floor"]
+color = Color(0.05, 0.04, 0.09, 1)
+polygon = PackedVector2Array(-800, -38, -780, -38, -770, -30, -760, -38, -750, -38, -200, -38, -180, -38, -170, -30, -160, -38, 100, -38, 120, -38, 130, -30, 140, -38, 600, -38, 620, -38, 630, -30, 640, -38)
 
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(-700, 0)
@@ -36,8 +60,12 @@ position = Vector2(-700, 0)
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="Visual" type="Polygon2D" parent="LeftWall"]
-color = Color(0.08, 0.08, 0.14, 1)
+color = Color(0.06, 0.05, 0.11, 1)
 polygon = PackedVector2Array(-20, -400, 20, -400, 20, 400, -20, 400)
+
+[node name="VisualEdge" type="Polygon2D" parent="LeftWall"]
+color = Color(0.14, 0.12, 0.20, 1)
+polygon = PackedVector2Array(16, -400, 20, -400, 20, 400, 16, 400)
 
 [node name="RightWall" type="StaticBody2D" parent="."]
 position = Vector2(700, 0)
@@ -46,8 +74,12 @@ position = Vector2(700, 0)
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="Visual" type="Polygon2D" parent="RightWall"]
-color = Color(0.08, 0.08, 0.14, 1)
+color = Color(0.06, 0.05, 0.11, 1)
 polygon = PackedVector2Array(-20, -400, 20, -400, 20, 400, -20, 400)
+
+[node name="VisualEdge" type="Polygon2D" parent="RightWall"]
+color = Color(0.14, 0.12, 0.20, 1)
+polygon = PackedVector2Array(-20, -400, -16, -400, -16, 400, -20, 400)
 
 [node name="Ceiling" type="StaticBody2D" parent="."]
 position = Vector2(0, -400)
